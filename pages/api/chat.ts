@@ -1,6 +1,7 @@
 // Next.js API route support: https://nextjs.org/docs/api-routes/introduction
 import type { NextApiRequest, NextApiResponse } from "next";
 import OpenAI from "openai";
+import {GymieChatMessage, InitialConfig, UserChatMessage} from "@/types";
 const openai = new OpenAI();
 const ASSISTANT_ID = "asst_z7VUrJOky5IuIl2b47N5JgVz"
 
@@ -14,19 +15,25 @@ export default async function handler(
     return
   }
 
-  // extract the threadId from the request body
-  let threadId = req.body.threadId;
-  let messageFromUser = req.body.message;
-  if (threadId === undefined) {
+  let userChatMessage: UserChatMessage = req.body;
+  let threadId = null;
+  let userMessage = null;
+  if (userChatMessage.initial_config !== undefined) {
+    // format the string to take initial_config.name
+    let initialConfig: InitialConfig = userChatMessage.initial_config;
+    userMessage = `My name is ${initialConfig.name}. I am ${initialConfig.age} years old and I work out at ${initialConfig.workout_location}.`;
     let thread =  await openai.beta.threads.create();
     threadId = thread.id;
+  } else {
+    userMessage = userChatMessage.user_message;
+    threadId = userChatMessage.thread_id;
   }
 
   await openai.beta.threads.messages.create(
       threadId,
       {
         role: "user",
-        content: messageFromUser
+        content: userMessage
       }
   );
 
@@ -51,7 +58,14 @@ export default async function handler(
     messageFromAssistant = "Sorry, I'm still learning. Try again later."
   }
 
-  return res.status(200).json({messageFromAssistant, threadId, isFinished: false});
+  // create a GymieChatMessage
+  let gymieChatMessage: GymieChatMessage = {
+    message: messageFromAssistant,
+    thread_id: threadId,
+    is_finished: false
+  };
+
+  return res.status(200).json(gymieChatMessage);
 
 
 
