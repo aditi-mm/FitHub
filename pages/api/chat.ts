@@ -6,6 +6,7 @@ const openai = new OpenAI();
 const ASSISTANT_ID = "asst_z7VUrJOky5IuIl2b47N5JgVz"
 
 
+const WORKOUT_DELIMITER = "NOW STARTING WORKOUT";
 export default async function handler(
     req: NextApiRequest,
     res: NextApiResponse,
@@ -58,11 +59,20 @@ export default async function handler(
     messageFromAssistant = "Sorry, I'm still learning. Try again later."
   }
 
+  let isFinished = false;
+  if (messageFromAssistant.includes(WORKOUT_DELIMITER)) {
+    // extract everything that comess after "NOW STARTING WORKOUT"
+    let startIndex = messageFromAssistant.indexOf(WORKOUT_DELIMITER) + WORKOUT_DELIMITER.length;
+    let endIndex = messageFromAssistant.length;
+    messageFromAssistant = messageFromAssistant.slice(startIndex, endIndex);
+    isFinished = true;
+  }
+
   // create a GymieChatMessage
   let gymieChatMessage: GymieChatMessage = {
     message: messageFromAssistant,
     thread_id: threadId,
-    is_finished: false
+    is_finished: isFinished
   };
 
   return res.status(200).json(gymieChatMessage);
