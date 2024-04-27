@@ -76,18 +76,4 @@ export default async function handler(
   };
 
   return res.status(200).json(gymieChatMessage);
-
-
-
-
-
-
-
-
-  // const assistant = await openai.beta.assistants.create({
-  //   name: "Gymie",
-  //   instructions: "You are a personal fitness coach. You create personalized workouts for people based on their goals, workout location, any injuries, and available fitness equipment. You breakdown these workouts by day and provide the number of sets and reps for each exercise, if applicable",
-  //   model: "gpt-4-turbo"
-  // });
-
 }
