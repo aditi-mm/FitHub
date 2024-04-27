@@ -59,20 +59,26 @@ export default async function handler(
         let newMessage = messages.data[0];
         messageFromAssistant = newMessage.content[0].text.value;
     } else if (run.status === 'requires_action') {
-        messageFromAssistant = run.required_action?.submit_tool_outputs.tool_calls[0].function.arguments;
-        let tool_id = run.required_action?.submit_tool_outputs.tool_calls[0].id;
-        run = await openai.beta.threads.runs.submitToolOutputsAndPoll(
-            run.thread_id,
-            run.id,
-            { tool_outputs: [{
-                    tool_call_id: tool_id,
-                    output: "None",
-                }] },
-        );
 
-        let messages_ignored = await openai.beta.threads.messages.list(
-            run.thread_id
-        );
+        messageFromAssistant = run.required_action?.submit_tool_outputs.tool_calls[0].function.arguments;
+        // console.log(run.required_action)
+        // console.log(run.required_action?.submit_tool_outputs)
+        // console.log(run.required_action?.submit_tool_outputs.tool_calls)
+        // console.log("Length of tools_calls is " + run.required_action?.submit_tool_outputs.tool_calls.length)
+        //
+        // let tool_id = run.required_action?.submit_tool_outputs.tool_calls[0].id;
+        // run = await openai.beta.threads.runs.submitToolOutputsAndPoll(
+        //     run.thread_id,
+        //     run.id,
+        //     { tool_outputs: [{
+        //             tool_call_id: tool_id,
+        //             output: "None",
+        //         }] },
+        // );
+        //
+        // let messages_ignored = await openai.beta.threads.messages.list(
+        //     run.thread_id
+        // );
 
         isFinished = true;
     }
