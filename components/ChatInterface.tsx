@@ -14,18 +14,32 @@ import {
     useBoolean,
 } from '@chakra-ui/react';
 import { ArrowForwardIcon } from '@chakra-ui/icons';
-import { InitialConfig } from '@/types';
+import { GymieChatMessage, InitialConfig, WorkoutPlan } from '@/types';
 import axios from 'axios';
+import { selectAge, selectName, selectThreadId, selectWorkoutLocation, setAge, setName, setThreadId, setWorkoutLocation, setWorkoutPlan } from '@/slices/userSlice';
+import { useDispatch, useSelector } from "react-redux";
 
 const ChatInterface: React.FC = () => {
-    const [name, setName] = useState<string>('');
-    const [age, setAge] = useState<string>('');
-    const [workoutLocation, setWorkoutLocation] = useState<string>('');
+
+    const name = useSelector(selectName);
+    const age = useSelector(selectAge);
+    const workoutLocation = useSelector(selectWorkoutLocation);
+    const threadId = useSelector(selectThreadId);
+    const getInitialMessage = () => {
+        if (name === '') {
+            return ['Gymie: Welcome to FitHub! My name is Gymie! What should I call you?'];
+        } else if (age === '') {
+            return [`Gymie: Hello, ${name}! How many years young are you?`];
+        } else if (workoutLocation === '') {
+            return [`Gymie: Let's pick up where we left off! Will you be working out at home, at an apartment or community facility, outdoors, or at a commercial gym?`];
+        }
+        return ['Gymie: Welcome back! How can I help you today?'];
+    };
     const [isTyping, setIsTyping] = useBoolean();
-    const [messages, setMessages] = useState<string[]>([
-        'Gymie: What should I call you?',
-    ]);
+    const [messages, setMessages] = useState<string[]>(getInitialMessage());
     const [inputValue, setInputValue] = useState<string>('');
+
+    const dispatch = useDispatch();
 
     // Scrolling logic
     const messagesEndRef = React.useRef<HTMLDivElement>(null);
@@ -41,8 +55,11 @@ const ChatInterface: React.FC = () => {
     const handleSendMessage = async () => {
         if (inputValue.trim() === '') return;
 
+        const userInput = inputValue;
+
         const newMessage = `You: ${inputValue}`;
         setMessages((messages) => [...messages, newMessage]);
+        setInputValue('');
 
         setIsTyping.on();
 
@@ -51,31 +68,40 @@ const ChatInterface: React.FC = () => {
             setTimeout(async () => {
                 // Simulate the AI agent's response
                 if (name === '') {
-                    setName(inputValue);
-                    setMessages((messages) => [...messages, `Gymie: Nice to meet you, ${inputValue}! How many years young are you?`]);
+                    dispatch(setName(userInput));
+                    setMessages((messages) => [...messages, `Gymie: Nice to meet you, ${userInput}! How many years young are you?`]);
                 }
                 else if (age === '') {
-                    setAge(inputValue);
+                    dispatch(setAge(userInput));
                     setMessages((messages) => [...messages, `Gymie: Got it! Will you be working out at home, at an apartment or community facility, outdoors, or at a commercial gym?`]);
                 }
                 else if (workoutLocation === '') {
-                    setWorkoutLocation(inputValue);
-                    setMessages((messages) => [...messages, `Gymie: Great! Let's get started with your personalized workout plan.`]);
+                    dispatch(setWorkoutLocation(userInput));
                     const initialConfig: InitialConfig = {
                         name: name,
                         age: parseInt(age),
-                        workout_location: inputValue,
+                        workout_location: userInput,
                     };
                     // call the chat endpoint 
-                    // const { data } = await axios.post('/api/chat', { initial_config: initialConfig });
+                    // Data is of type GymieChatMessage
+                    const { data } = await axios.post<GymieChatMessage>('/api/chat', { initial_config: initialConfig });
+                    dispatch(setThreadId(data.thread_id));
+                    setMessages((messages) => [...messages, `Gymie: ${data.message}`]);
                 }
             }, 2000);
         } else {
-            // 
-
+            // call the chat endpoint 
+            // Data is of type GymieChatMessage
+            const { data } = await axios.post<GymieChatMessage>('/api/chat', { user_message: userInput, thread_id: threadId });
+            if (data.is_finished) {
+                const workoutPlan: WorkoutPlan = JSON.parse(data.message);
+                dispatch(setWorkoutPlan(workoutPlan));
+                setMessages((messages) => [...messages, `Gymie: Your workout plan is ready! 🎉`]);
+            } else {
+                setMessages((messages) => [...messages, `Gymie: ${data.message}`]);
+            }
         }
 
-        setInputValue('');
         setIsTyping.off();
     };
 
@@ -88,7 +114,7 @@ const ChatInterface: React.FC = () => {
     return (
         <Box
             width={"100%"}
-            height={"100%"}
+            height={"full"}
             mx="auto"
             mt={4}
             p={4}
@@ -99,12 +125,13 @@ const ChatInterface: React.FC = () => {
             bg="#e0d9cc" // Use Chakra UI theme color
         >
             <Flex
-                minHeight={{ base: 'full', md: 'full' }}
                 overflowY="auto"
                 direction={'column'}
+                justifyContent={'space-between'}
                 height={'full'}
+                bg="#e0d9cc"
             >
-                <Box mb={4} height={'80%'} overflow={"scroll"}>
+                <Box mb={4} overflow={"scroll"} bg="#e0d9cc" maxH={"500px"}>
                     {messages.map((message, index) => (
                         <Flex
                             key={index}
@@ -124,10 +151,24 @@ const ChatInterface: React.FC = () => {
                                 wordBreak="break-word"
                             >
                                 {message}
+                                {
+                                    // Check if string contains Your workout plan is ready
+                                    message.includes('Your workout plan is ready') && (
+                                        <Tag
+                                            size="sm"
+                                            ml={2}
+                                            colorScheme="tertiary"
+                                            borderRadius="full"
+                                        >
+                                            <TagLabel>View Plan</TagLabel>
+                                            <TagCloseButton />
+                                        </Tag>
+                                    )
+                                }
                             </Box>
                         </Flex>
                     ))}
-                    {
+                    {/* {
                         isTyping && (
                             <Flex alignItems="center">
                                 <Avatar name="Gymie" bg={"tertiary.500"} mr={4} />
@@ -143,7 +184,7 @@ const ChatInterface: React.FC = () => {
                                 </Box>
                             </Flex>
                         )
-                    }
+                    } */}
                     <div id="chat-interface" ref={messagesEndRef} />
                 </Box>
                 <Flex alignItems={'end'}>

@@ -15,3 +15,42 @@ export interface GymieChatMessage {
     thread_id: string;
     is_finished: boolean;
 };
+
+export interface Exercise {
+    exercise_name: string;
+    number_sets?: number;
+    number_reps?: number;
+    duration?: number;
+    notes?: string;
+}
+
+export interface WorkoutPlan {
+    Monday: {
+        description: string;
+        exercises: Exercise[];
+    },
+    Tuesday: {
+        description: string;
+        exercises: Exercise[];
+    },
+    Wednesday: {
+        description: string;
+        exercises: Exercise[];
+    },
+    Thursday: {
+        description: string;
+        exercises: Exercise[];
+    },
+    Friday: {
+        description: string;
+        exercises: Exercise[];
+    },
+    Saturday: {
+        description: string;
+        exercises: Exercise[];
+    },
+    Sunday: {
+        description: string;
+        exercises: Exercise[];
+    }
+}
