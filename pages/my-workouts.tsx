@@ -34,25 +34,25 @@ const WorkoutPlanPage: React.FC = () => {
                         // Get the image for the day
                         let image = MondayImage;
                         switch (day) {
-                            case 'Monday':
+                            case 'monday':
                                 image = MondayImage;
                                 break;
-                            case 'Tuesday':
+                            case 'tuesday':
                                 image = TuesdayImage;
                                 break;
-                            case 'Wednesday':
+                            case 'wednesday':
                                 image = WednesdayImage;
                                 break;
-                            case 'Thursday':
+                            case 'thursday':
                                 image = ThursdayImage;
                                 break;
-                            case 'Friday':
+                            case 'friday':
                                 image = FridayImage;
                                 break;
-                            case 'Saturday':
+                            case 'saturday':
                                 image = SaturdayImage;
                                 break;
-                            case 'Sunday':
+                            case 'sunday':
                                 image = SundayImage;
                                 break;
                         }
@@ -67,7 +67,10 @@ const WorkoutPlanPage: React.FC = () => {
                                 borderRadius="lg"
                             >
                                 <CardHeader bg={theme.colors.primary[500]} py={2} px={4} borderTopRadius="lg">
-                                    <Heading as="h2" size="md" color="white">{day}</Heading>
+                                    <Heading as="h2" size="md" color="white">{
+                                        // Capitalize the first letter of the day
+                                        day.charAt(0).toUpperCase() + day.slice(1)
+                                    }</Heading>
                                 </CardHeader>
                                 <Image src={image} alt={`Workout for ${day}`} />
                                 <CardBody>
@@ -77,7 +80,7 @@ const WorkoutPlanPage: React.FC = () => {
                                     <Flex gap={4}>
                                         <Button colorScheme="primary.500" variant="outline"
                                             onClick={() => {
-                                                setDay(day);
+                                                setDay(day.charAt(0).toUpperCase() + day.slice(1));
                                                 setDescription(workoutPlan[day as keyof typeof workoutPlan].description);
                                                 setExercises(workoutPlan[day as keyof typeof workoutPlan].exercises);
                                                 setIsOpen(true);

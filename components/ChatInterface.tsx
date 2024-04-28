@@ -10,7 +10,6 @@ import {
     Avatar,
     Tag,
     TagLabel,
-    TagCloseButton,
     useBoolean,
 } from '@chakra-ui/react';
 import { ArrowForwardIcon } from '@chakra-ui/icons';
@@ -18,8 +17,10 @@ import { GymieChatMessage, InitialConfig, WorkoutPlan } from '@/types';
 import axios from 'axios';
 import { selectAge, selectName, selectThreadId, selectWorkoutLocation, setAge, setName, setThreadId, setWorkoutLocation, setWorkoutPlan } from '@/slices/userSlice';
 import { useDispatch, useSelector } from "react-redux";
+import { useRouter } from 'next/router';
 
 const ChatInterface: React.FC = () => {
+    const router = useRouter();
 
     const name = useSelector(selectName);
     const age = useSelector(selectAge);
@@ -159,9 +160,11 @@ const ChatInterface: React.FC = () => {
                                             ml={2}
                                             colorScheme="tertiary"
                                             borderRadius="full"
+                                            onClick={() => {
+                                                router.push('/my-workouts');
+                                            }}
                                         >
                                             <TagLabel>View Plan</TagLabel>
-                                            <TagCloseButton />
                                         </Tag>
                                     )
                                 }
